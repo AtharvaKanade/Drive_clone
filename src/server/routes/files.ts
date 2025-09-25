@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import multer from 'multer';
-import { prisma } from '../db/prisma';
-import { requireAuth, AuthenticatedRequest } from '../middlewares/auth';
-import { uploadObject, getObjectStream, deleteObject, getSignedUrl } from '../storage/s3';
+import { prisma } from '../db/prisma.js';
+import { requireAuth, AuthenticatedRequest } from '../middlewares/auth.js';
+import { uploadObject, getObjectStream, deleteObject, getSignedUrl } from '../storage/s3.js';
 import crypto from 'crypto';
 
 const filesRouter = Router();
