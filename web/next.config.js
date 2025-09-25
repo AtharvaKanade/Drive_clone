@@ -2,7 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  output: 'standalone',
+  // Remove output: 'standalone' for Vercel deployment
+  // output: 'standalone',
 }
 
 module.exports = nextConfig
