@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  folders      Folder[]
+  files        File[]
+  permissions  Permission[]
+  refreshTokens RefreshToken[]
+}
+
+model Folder {
+  id        String    @id @default(uuid())
+  name      String
+  ownerId   String
+  parentId  String?   // null means root
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  parent  Folder? @relation("FolderToFolder", fields: [parentId], references: [id], onDelete: Cascade)
+  children Folder[] @relation("FolderToFolder")
+  files   File[]
+
+  @@index([ownerId])
+  @@index([parentId])
+  @@index([deletedAt])
+}
+
+model File {
+  id        String   @id @default(uuid())
+  name      String
+  mimeType  String
+  size      BigInt
+  key       String   // object key in bucket
+  bucket    String
+  checksum  String?
+  ownerId   String
+  folderId  String?
+  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner  User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  folder Folder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+
+  @@index([ownerId])
+  @@index([folderId])
+  @@index([deletedAt])
+}
+
+enum ResourceType {
+  FILE
+  FOLDER
+}
+
+model Permission {
+  id         String       @id @default(uuid())
+  userId     String
+  resourceId String
+  resourceType ResourceType
+  canRead    Boolean @default(true)
+  canWrite   Boolean @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, resourceId, resourceType])
+  @@index([resourceId, resourceType])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  tokenHash String
+  userId    String
+  createdAt DateTime @default(now())
+  revoked   Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@unique([tokenHash])
+}
+
+model ShareLink {
+  id           String       @id @default(uuid())
+  token        String       @unique
+  resourceId   String
+  resourceType ResourceType
+  role         String       @default("VIEWER")
+  expiresAt    DateTime
+  createdAt    DateTime     @default(now())
+
+  @@index([token])
+  @@index([resourceId, resourceType])
+}
+
+
