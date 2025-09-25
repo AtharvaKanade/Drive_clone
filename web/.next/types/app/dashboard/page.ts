@@ -1,4 +1,4 @@
-// File: C:\Codes\Google_drive\web\app\dashboard\page.tsx
+// File: C:\Users\athar\OneDrive\Desktop\Drive_clone\web\app\dashboard\page.tsx
 import * as entry from '../../../../app/dashboard/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
