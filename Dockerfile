@@ -1,18 +1,22 @@
+# Backend Dockerfile for Google Drive Clone
 FROM node:20-alpine AS deps
 WORKDIR /usr/src/app
-COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* ./
-RUN npm ci || yarn install || pnpm install
+COPY package.json package-lock.json* ./
+RUN npm ci --only=production
 
 FROM node:20-alpine AS build
 WORKDIR /usr/src/app
-COPY --from=deps /usr/src/app/node_modules ./node_modules
+COPY package.json package-lock.json* ./
+RUN npm ci
 COPY . .
-RUN npm run build && npx prisma generate
+# Generate Prisma client first, then build
+RUN npx prisma generate
+RUN npm run build
 
 FROM node:20-alpine
 WORKDIR /usr/src/app
 ENV NODE_ENV=production
-COPY --from=build /usr/src/app/node_modules ./node_modules
+COPY --from=deps /usr/src/app/node_modules ./node_modules
 COPY --from=build /usr/src/app/dist ./dist
 COPY --from=build /usr/src/app/prisma ./prisma
 COPY package.json ./
