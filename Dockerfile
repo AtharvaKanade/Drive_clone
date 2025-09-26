@@ -20,7 +20,10 @@ COPY --from=deps /usr/src/app/node_modules ./node_modules
 COPY --from=build /usr/src/app/dist ./dist
 COPY --from=build /usr/src/app/prisma ./prisma
 COPY package.json ./
+# Create uploads directory for file storage
+RUN mkdir -p uploads
 EXPOSE 3000
-CMD ["node", "dist/index.js"]
+# Run database migrations and start the server
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
 
 

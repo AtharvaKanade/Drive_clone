@@ -3,7 +3,7 @@ import { z } from 'zod';
 import multer from 'multer';
 import { prisma } from '../db/prisma.js';
 import { requireAuth, AuthenticatedRequest } from '../middlewares/auth.js';
-import { uploadObject, getObjectStream, deleteObject, getSignedUrl } from '../storage/s3.js';
+import { uploadObject, getObjectStream, deleteObject, getSignedUrl } from '../storage/supabase.js';
 import crypto from 'crypto';
 
 const filesRouter = Router();
@@ -57,11 +57,11 @@ filesRouter.post('/upload', requireAuth, upload.single('file'), async (req: Auth
   }
 
   try {
-    // Generate unique key for S3 storage
+    // Generate unique key for local storage
     const ext = file.originalname.split('.').pop() ?? '';
     const key = `${req.user!.id}/${crypto.randomUUID()}.${ext}`;
     
-    // Upload to S3/MinIO
+    // Upload to local storage
     await uploadObject(key, file.buffer, file.mimetype, file.size);
     
     // Calculate file checksum
@@ -74,7 +74,7 @@ filesRouter.post('/upload', requireAuth, upload.single('file'), async (req: Auth
         mimeType: file.mimetype,
         size: BigInt(file.size),
         key,
-        bucket: process.env.S3_BUCKET as string,
+        bucket: 'supabase',
         ownerId: req.user!.id,
         folderId: parsed.data.folderId ?? null,
         checksum,
@@ -193,14 +193,14 @@ filesRouter.get('/:id/preview', requireAuth, async (req: AuthenticatedRequest, r
         const { stream } = await getObjectStream(file.key);
         const chunks: Buffer[] = [];
         
-        stream.on('data', (chunk) => chunks.push(chunk));
+        stream.on('data', (chunk: any) => chunks.push(chunk));
         stream.on('end', () => {
           const buffer = Buffer.concat(chunks);
           const base64 = buffer.toString('base64');
           const dataUrl = `data:${file.mimeType};base64,${base64}`;
           res.json({ previewUrl: dataUrl });
         });
-        stream.on('error', (err) => {
+        stream.on('error', (err: Error) => {
           console.error('Stream error:', err);
           res.status(500).json({ error: { message: 'Preview failed' } });
         });

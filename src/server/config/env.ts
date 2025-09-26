@@ -12,11 +12,17 @@ const EnvSchema = z.object({
   JWT_EXPIRES_IN: z.string().default("15m"),
   JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
 
-  S3_ENDPOINT: z.string(),
-  S3_REGION: z.string(),
-  S3_ACCESS_KEY: z.string(),
-  S3_SECRET_KEY: z.string(),
-  S3_BUCKET: z.string(),
+  // Supabase configuration
+  SUPABASE_URL: z.string(),
+  SUPABASE_SERVICE_KEY: z.string(),
+  SUPABASE_BUCKET: z.string().default('gdrive-files'),
+
+  // Legacy S3 configuration (optional for backward compatibility)
+  S3_ENDPOINT: z.string().optional(),
+  S3_REGION: z.string().optional(),
+  S3_ACCESS_KEY: z.string().optional(),
+  S3_SECRET_KEY: z.string().optional(),
+  S3_BUCKET: z.string().optional(),
 });
 
 // Validate process.env

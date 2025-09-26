@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import { prisma } from '../db/prisma.js';
 import { requireAuth, AuthenticatedRequest } from '../middlewares/auth.js';
 import { ResourceType } from '@prisma/client';
-import { getSignedDownloadUrl } from '../storage/signing.js';
+import { getSignedUrl } from '../storage/supabase.js';
 
 export const shareRouter = Router();
 
@@ -33,7 +33,7 @@ shareRouter.get('/:token', async (req, res) => {
   if (link.resourceType === 'FILE') {
     const file = await prisma.file.findUnique({ where: { id: link.resourceId } });
     if (!file || file.deletedAt) return res.status(404).json({ error: { message: 'Not found' } });
-    const signedUrl = await getSignedDownloadUrl(file.key, 60 * 5);
+    const signedUrl = await getSignedUrl(file.key, file.mimeType, 60 * 5);
     return res.json({ file: { id: file.id, name: file.name, mimeType: file.mimeType, size: file.size.toString() }, url: signedUrl });
   }
   // For folder, return metadata only
