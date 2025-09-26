@@ -24,6 +24,6 @@ COPY package.json ./
 RUN mkdir -p uploads
 EXPOSE 3000
 # Run database migrations and start the server
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
+CMD ["sh", "-c", "npx prisma generate && npx prisma migrate deploy && node dist/index.js"]
 
 
